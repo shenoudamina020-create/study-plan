@@ -1,0 +1,576 @@
+[index.html](https://github.com/user-attachments/files/34100450/index.html)
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جدول المذاكرة الأسبوعي مع نظام التنبيهات - الصف الثالث الإعدادي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- html2canvas Library for Image Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f1f5f9;
+        }
+        .day-card {
+            transition: all 0.25s ease-in-out;
+        }
+        .day-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased p-3 sm:p-6 md:p-10">
+
+    <!-- Control & Alarm Bar -->
+    <div class="max-w-7xl mx-auto mb-6 flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 no-print">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-indigo-200">
+                3
+            </div>
+            <div>
+                <h2 class="font-bold text-slate-800 text-lg">جدول المذاكرة مع المنبه الذكي ⏰</h2>
+                <p id="live-clock" class="text-xs text-indigo-600 font-extrabold">جارٍ تحميل الساعة...</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- Alarm Toggle Button -->
+            <button id="alarm-toggle-btn" onclick="toggleAlarmSystem()" class="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm rounded-xl transition shadow-md shadow-amber-200 cursor-pointer">
+                <i class="fa-solid fa-bell-slash text-base" id="alarm-icon"></i>
+                <span id="alarm-text">تفعيل التنبيهات الصوتية العالية</span>
+            </button>
+            <button onclick="downloadAsImage()" class="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-sm rounded-xl transition shadow-md shadow-indigo-200 cursor-pointer">
+                <i class="fa-solid fa-file-image text-base"></i>
+                <span>حفظ كصورة (PNG)</span>
+            </button>
+            <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 active:scale-95 text-white font-bold text-sm rounded-xl transition shadow-md shadow-slate-300 cursor-pointer">
+                <i class="fa-solid fa-print text-base"></i>
+                <span>طباعة</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Alert Banner -->
+    <div id="alert-banner" class="max-w-7xl mx-auto mb-6 bg-rose-600 text-white p-4 rounded-2xl shadow-lg hidden no-print flex items-center justify-between animate-pulse">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-bell-ring text-2xl animate-bounce"></i>
+            <div>
+                <h4 class="font-extrabold text-base" id="alert-title">تنبيه الموعد!</h4>
+                <p class="text-xs text-rose-100" id="alert-desc">حان الآن وقت النشاط المحدد في جدولك، اصحى وراك مستقبل!</p>
+            </div>
+        </div>
+        <button onclick="dismissAlert()" class="bg-white text-rose-700 px-4 py-1.5 rounded-xl font-bold text-xs shadow hover:bg-rose-50">إيقاف التنبيه</button>
+    </div>
+
+    <!-- MAIN CAPTURE AREA -->
+    <div id="capture-area" class="max-w-7xl mx-auto bg-slate-100 p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-200/60 space-y-6">
+
+        <!-- Banner Header -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 text-white p-6 sm:p-8 shadow-lg">
+            <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-amber-300 mb-2">
+                        ✨ نظام المذاكرة المنضبط بالمنبه العالي (12 ساعة)
+                    </span>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">الجدول الأسبوعي للبطولات والتفوق 🎓</h1>
+                    <p class="text-indigo-100 text-xs sm:text-sm mt-1">الصف الثالث الإعدادي | تنبيهات تلقائية قوية ومواعيد ثابتة</p>
+                </div>
+                <div class="bg-white/15 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 text-center flex items-center gap-3">
+                    <i class="fa-regular fa-clock text-2xl text-amber-300"></i>
+                    <div class="text-right">
+                        <div class="text-xs text-indigo-100 font-semibold">استراتيجية النوم والصحيان</div>
+                        <div class="text-sm font-extrabold text-white">نوم: 10:00 م | صحيان: 5:00 ص</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. MORNING ROUTINE CARD -->
+        <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between mb-4 border-b border-white/20 pb-3">
+                <h2 class="text-lg sm:text-xl font-black flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-amber-200">
+                        <i class="fa-solid fa-sun text-base"></i>
+                    </span>
+                    الروتين الصباحي الثابت (يومياً من 5:00 ص إلى 8:00 ص)
+                </h2>
+                <span class="text-xs font-bold bg-white/20 px-3 py-1 rounded-full text-amber-100 border border-white/10">بركة أول اليوم 🕊️</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-400/30 flex-shrink-0 flex items-center justify-center text-amber-100 font-bold text-lg"><i class="fa-solid fa-book-bible"></i></div>
+                    <div>
+                        <div class="text-amber-200 text-xs font-extrabold">05:00 ص</div>
+                        <div class="font-bold text-white text-sm">صلاة وقراءة الكتاب المقدس</div>
+                    </div>
+                </div>
+                <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-400/30 flex-shrink-0 flex items-center justify-center text-amber-100 font-bold text-lg"><i class="fa-solid fa-basket-shopping"></i></div>
+                    <div>
+                        <div class="text-amber-200 text-xs font-extrabold">06:00 ص</div>
+                        <div class="font-bold text-white text-sm">جلب العيش 🍞</div>
+                    </div>
+                </div>
+                <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-400/30 flex-shrink-0 flex items-center justify-center text-amber-100 font-bold text-lg"><i class="fa-solid fa-utensils"></i></div>
+                    <div>
+                        <div class="text-amber-200 text-xs font-extrabold">06:30 ص</div>
+                        <div class="font-bold text-white text-sm">الفطور الرايق (ينتهي 8:00 ص) 🍳</div>
+                    </div>
+                </div>
+                <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-400/30 flex-shrink-0 flex items-center justify-center text-amber-100 font-bold text-lg"><i class="fa-solid fa-music"></i></div>
+                    <div>
+                        <div class="text-amber-200 text-xs font-extrabold">07:30 ص</div>
+                        <div class="font-bold text-white text-sm">حفظ الألحان 🎼</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. WEEKLY DAYS GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <!-- 1. الأحد -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-indigo-500"></span> الأحد
+                        </h3>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">محاضرة دراسات 📚</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                            <span><b>08:00 ص:</b> دراسات (المحاضرة الجديدة)</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">☕ 10:00 ص: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-900 flex justify-between items-center">
+                            <span><b>10:30 ص:</b> علوم (تكملة المنهج)</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">🛋️ 12:00 م: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-purple-50/80 border border-purple-100 text-purple-900 flex justify-between items-center">
+                            <span><b>12:30 م:</b> إنجليزي (فك التراكم)</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 space-y-1">
+                            <div><b>04:00 م:</b> مدرسة شماسية ⛪</div>
+                            <div><b>05:30 م:</b> درس علوم 🧪</div>
+                            <div><b>07:00 م:</b> درس رياضة 📐</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. الاثنين -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span> الاثنين
+                        </h3>
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">مدارس أحد ⛪</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-2.5 rounded-xl bg-cyan-50/80 border border-cyan-100 text-cyan-900 flex justify-between items-center">
+                            <span><b>08:00 ص:</b> رياضة (سهلة وسريعة)</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">☕ 09:00 ص: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-purple-50/80 border border-purple-100 text-purple-900 flex justify-between items-center">
+                            <span><b>09:30 ص:</b> إنجليزي (تراكمات)</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">🛋️ 11:00 ص: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                            <span><b>11:30 ص:</b> دراسات</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-orange-50/80 border border-orange-100 text-orange-900 flex justify-between items-center">
+                            <span><b>01:30 م:</b> عربي</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-800">
+                            <b>04:00 م:</b> مدارس أحد ⛪
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. الثلاثاء -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span> الثلاثاء
+                        </h3>
+                        <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-md">درس إنجليزي 🔤</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-900 flex justify-between items-center">
+                            <span><b>08:00 ص:</b> علوم (تركيز عالي)</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">☕ 09:30 ص: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                            <span><b>10:00 ص:</b> دراسات</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">🛋️ 12:00 م: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-orange-50/80 border border-orange-100 text-orange-900 flex justify-between items-center">
+                            <span><b>12:30 م:</b> عربي</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-800">
+                            <b>05:00 م:</b> درس إنجليزي 🔤
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. الأربعاء -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-sky-500"></span> الأربعاء
+                        </h3>
+                        <span class="text-xs font-bold text-sky-600 bg-sky-50 px-2.5 py-1 rounded-md">قداس الصباح ⛪</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-3 rounded-xl bg-sky-50 border border-sky-100 text-sky-900 flex justify-between items-center">
+                            <span><b>07:00 ص:</b> القداس الإلهي بركة اليوم ⛪</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                            <span><b>03:30 م:</b> دراسات (حل الواجب)</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 space-y-1">
+                            <div><b>05:30 م:</b> درس علوم 🧪</div>
+                            <div><b>07:00 م:</b> درس رياضة 📐</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. الخميس -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-teal-500"></span> الخميس
+                        </h3>
+                        <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md">تنظيف البيت 🧹</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-3 rounded-xl bg-teal-50 border border-teal-100 text-teal-900 flex justify-between items-center">
+                            <span><b>08:00 ص:</b> مساعدة في تنظيف البيت</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء وراحة</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-900 flex justify-between items-center">
+                            <span><b>03:00 م:</b> علوم</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-100 text-slate-500 text-center font-bold text-[11px]">🛋️ 04:30 م: استراحة</div>
+                        <div class="p-2.5 rounded-xl bg-purple-50/80 border border-purple-100 text-purple-900 flex justify-between items-center">
+                            <span><b>05:00 م:</b> إنجليزي</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-orange-50/80 border border-orange-100 text-orange-900 flex justify-between items-center">
+                            <span><b>06:30 م:</b> عربي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. الجمعة -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-purple-500"></span> الجمعة
+                        </h3>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">قداس وراحة ⛪</span>
+                    </div>
+                    <div class="space-y-2.5 text-xs font-semibold">
+                        <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-100 text-sky-900 flex justify-between items-center">
+                            <span><b>07:00 ص:</b> القداس الإلهي</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-cyan-50/80 border border-cyan-100 text-cyan-900 flex justify-between items-center">
+                            <span><b>12:00 م:</b> رياضة</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                            <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                            <span><b>03:30 م:</b> دراسات</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-900 flex justify-between items-center">
+                            <span><b>06:00 م:</b> علوم</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. السبت -->
+            <div class="day-card bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 md:col-span-2 lg:col-span-3">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                    <h3 class="font-extrabold text-lg text-indigo-700 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span> السبت
+                    </h3>
+                    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md">مراجعة أسبوعية ودراسة مكثفة 🎯</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-semibold">
+                    <div class="p-2.5 rounded-xl bg-purple-50/80 border border-purple-100 text-purple-900 flex justify-between items-center">
+                        <span><b>08:00 ص:</b> إنجليزي</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-orange-50/80 border border-orange-100 text-orange-900 flex justify-between items-center">
+                        <span><b>10:00 ص:</b> عربي</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-900 flex justify-between items-center">
+                        <span><b>11:00 ص:</b> دراسات</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-900 flex justify-between items-center">
+                        <span><b>01:00 م:</b> علوم (مراجعة)</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-extrabold flex justify-between items-center">
+                        <span><b>02:30 م:</b> 🍽️ الغداء</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 flex justify-between items-center">
+                        <span><b>05:00 م:</b> درس إنجليزي 🔤</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. NIGHT ROUTINE BAR -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 border border-slate-700">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold text-xl">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-sm sm:text-base">صلاة ختام اليوم والنوم الثابت</h4>
+                    <p class="text-slate-400 text-xs">منبه تلقائي للنوم الهادئ والراحة</p>
+                </div>
+            </div>
+            <div class="bg-amber-400 text-slate-950 font-black px-5 py-2 rounded-xl text-sm shadow-sm">
+                ⏰ الساعة 10:00 م
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Alarm & Clock Script Logic -->
+    <script>
+        let alarmEnabled = false;
+        let audioCtx = null;
+
+        const scheduleAlarms = [
+            // Daily Routine Alarms
+            { day: [0,1,2,3,4,5,6], time: "05:00", period: "AM", title: "وقت الصلاة وقراءة الكتاب المقدس 📖" },
+            { day: [0,1,2,3,4,5,6], time: "06:00", period: "AM", title: "وقت جلب العيش 🍞" },
+            { day: [0,1,2,3,4,5,6], time: "06:30", period: "AM", title: "وقت الفطور الرايق 🍳" },
+            { day: [0,1,2,3,4,5,6], time: "07:30", period: "AM", title: "وقت حفظ الألحان 🎼" },
+            { day: [0,1,2,3,4,5,6], time: "02:30", period: "PM", title: "حان الآن موعد الغداء 🍽️" },
+            { day: [0,1,2,3,4,5,6], time: "10:00", period: "PM", title: "موعد النوم وثبات الاستيقاظ 🌙" },
+
+            // Sunday Alarms
+            { day: [0], time: "08:00", period: "AM", title: "بداية دراسات (محاضرة الأحد) 📚" },
+            { day: [0], time: "10:30", period: "AM", title: "بداية مذاكرة العلوم 🧪" },
+            { day: [0], time: "12:30", period: "PM", title: "بداية فك تراكمات الإنجليزي 🔤" },
+            { day: [0], time: "04:00", period: "PM", title: "مدرسة شماسية ⛪" },
+            { day: [0], time: "05:30", period: "PM", title: "درس علوم 🧪" },
+            { day: [0], time: "07:00", period: "PM", title: "درس رياضة 📐" },
+
+            // Monday Alarms
+            { day: [1], time: "08:00", period: "AM", title: "بداية رياضة (حل سريع) 📐" },
+            { day: [1], time: "09:30", period: "AM", title: "إنجليزي (تراكمات)" },
+            { day: [1], time: "11:30", period: "AM", title: "دراسات" },
+            { day: [1], time: "01:30", period: "PM", title: "لغة عربية 📝" },
+            { day: [1], time: "04:00", period: "PM", title: "مدارس أحد ⛪" },
+
+            // Tuesday Alarms
+            { day: [2], time: "08:00", period: "AM", title: "علوم (تركيز عالي) 🧪" },
+            { day: [2], time: "10:00", period: "AM", title: "دراسات" },
+            { day: [2], time: "12:30", period: "PM", title: "لغة عربية" },
+            { day: [2], time: "05:00", period: "PM", title: "درس إنجليزي 🔤" },
+
+            // Wednesday Alarms
+            { day: [3], time: "07:00", period: "AM", title: "قداس الصباح الإلهي ⛪" },
+            { day: [3], time: "03:30", period: "PM", title: "دراسات (حل الواجب) 📚" },
+            { day: [3], time: "05:30", period: "PM", title: "درس علوم 🧪" },
+            { day: [3], time: "07:00", period: "PM", title: "درس رياضة 📐" },
+
+            // Thursday Alarms
+            { day: [4], time: "08:00", period: "AM", title: "مساعدة في تنظيف البيت 🧹" },
+            { day: [4], time: "03:00", period: "PM", title: "علوم" },
+            { day: [4], time: "05:00", period: "PM", title: "إنجليزي" },
+            { day: [4], time: "06:30", period: "PM", title: "عربي" },
+
+            // Friday Alarms
+            { day: [5], time: "07:00", period: "AM", title: "قداس الجمعة ⛪" },
+            { day: [5], time: "12:00", period: "PM", title: "رياضة 📐" },
+            { day: [5], time: "03:30", period: "PM", title: "دراسات" },
+            { day: [5], time: "06:00", period: "PM", title: "علوم" },
+
+            // Saturday Alarms
+            { day: [6], time: "08:00", period: "AM", title: "إنجليزي" },
+            { day: [6], time: "10:00", period: "AM", title: "عربي" },
+            { day: [6], time: "11:00", period: "AM", title: "دراسات" },
+            { day: [6], time: "01:00", period: "PM", title: "علوم (مراجعة)" },
+            { day: [6], time: "05:00", period: "PM", title: "درس إنجليزي 🔤" }
+        ];
+
+        // Update live clock and check alarms every second (12-hour format)
+        setInterval(() => {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            const alarmAmpm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            const formattedHours = String(hours).padStart(2, '0');
+
+            const timeStr = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+            
+            const daysNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const currentDayName = daysNames[now.getDay()];
+
+            document.getElementById('live-clock').innerText = `الوقت الآن: ${timeStr} (${currentDayName})`;
+
+            if (alarmEnabled) {
+                const currentHm = `${String(hours).padStart(2, '0')}:${minutes}`;
+                const currentDayIndex = now.getDay();
+
+                scheduleAlarms.forEach(alarm => {
+                    if (alarm.day.includes(currentDayIndex) && alarm.time === currentHm && alarm.period === alarmAmpm && seconds === '00') {
+                        triggerAlert(alarm.title);
+                    }
+                });
+            }
+        }, 1000);
+
+        function toggleAlarmSystem() {
+            alarmEnabled = !alarmEnabled;
+            const btn = document.getElementById('alarm-toggle-btn');
+            const icon = document.getElementById('alarm-icon');
+            const text = document.getElementById('alarm-text');
+
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (alarmEnabled) {
+                btn.classList.remove('bg-amber-500', 'hover:bg-amber-600', 'shadow-amber-200');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-emerald-200');
+                icon.className = "fa-solid fa-bell text-base";
+                text.innerText = "التنبيهات العالية مفعلة ✅";
+                playBeepSequence();
+            } else {
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-emerald-200');
+                btn.classList.add('bg-amber-500', 'hover:bg-amber-600', 'shadow-amber-200');
+                icon.className = "fa-solid fa-bell-slash text-base";
+                text.innerText = "تفعيل التنبيهات الصوتية العالية";
+            }
+        }
+
+        function triggerAlert(title) {
+            const banner = document.getElementById('alert-banner');
+            document.getElementById('alert-title').innerText = title;
+            banner.classList.remove('hidden');
+            playBeepSequence();
+        }
+
+        function dismissAlert() {
+            document.getElementById('alert-banner').classList.add('hidden');
+        }
+
+        // High volume loud beep generator
+        function playBeep() {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(1760, audioCtx.currentTime + 0.15); 
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) { console.log(e); }
+        }
+
+        // Long repeating alarm sequence (10 times)
+        function playBeepSequence() {
+            let count = 0;
+            const ringInterval = setInterval(() => {
+                playBeep();
+                count++;
+                if (count >= 10) {
+                    clearInterval(ringInterval);
+                }
+            }, 300);
+        }
+
+        function downloadAsImage() {
+            const captureElement = document.getElementById('capture-area');
+            document.body.style.cursor = 'wait';
+            html2canvas(captureElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#f1f5f9'
+            }).then(canvas => {
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = 'جدول_المذاكرة_مع_المنبه.png';
+                link.click();
+                document.body.style.cursor = 'default';
+            }).catch(err => {
+                console.error(err);
+                document.body.style.cursor = 'default';
+            });
+        }
+    </script>
+</body>
+</html>
