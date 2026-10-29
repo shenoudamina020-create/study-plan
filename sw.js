@@ -1,6 +1,6 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('study-plan-v1').then((cache) => {
+    caches.open('study-plan-v2').then((cache) => {
       return cache.addAll([
         './index.html',
         './manifest.json',
